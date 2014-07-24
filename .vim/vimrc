@@ -1,0 +1,138 @@
+" ================================================
+" INITIALIZATION
+" ================================================
+if has("win32")
+    source $VIMRUNTIME/mswin.vim
+endif
+
+set nocompatible
+set nobackup
+set fileencoding=utf8 encoding=utf8
+set history=50      " keep 40 lines of command line history
+set autoindent      " always set autoindenting on
+set incsearch		" do incremental searching
+set autoread        " auto read chianged files
+set showcmd		    " display incomplete commands
+set number          " turn on lines number
+set ruler           " turn on status line on bottom right corner
+set backspace=indent,eol,start
+set shiftwidth=4 tabstop=4 softtabstop=4 expandtab
+filetype plugin indent on
+set background=dark
+color default
+let mapleader = ","     " map <leader> to for convenience
+" let g:html_indent_inctags = "html,head,body"
+
+if has("gui_running")
+    set guioptions=''   " remove all extra GUI components
+    set mouse=a
+    set lines=36 columns=128    " consistent window size
+    set background=dark
+    color solarized
+endif
+
+" switch syntax highlighting on, when the terminal has colors
+" also switch on highlight the last used search pattern
+if &t_Co > 2 || has("gui_running")
+    syntax on
+    set hlsearch
+endif
+
+if has("autocmd")
+  autocmd BufReadPost *
+    \ if line("'\"") > 1 && line("'\"") <= line("$") |
+    \   exe "normal! g`\"" |
+    \ endif
+endif
+
+" ================================================
+" KEY BINDINGS
+" ================================================
+" for manipulating vimrc
+nmap <leader>ev :e $MYVIMRC<CR>
+nmap <silent> <leader>vv :so $MYVIMRC<CR>
+
+" for managing tabs
+nmap <leader>tn :tabnew<CR>
+nmap <leader>to :tabonly<CR>
+nmap <leader>tc :tabclose<CR>
+
+" toggle highlight search
+nmap <silent> <leader>th :set nohlsearch!<CR>
+
+" treat long lines as break lines
+nmap j gj
+nmap k gk
+
+" spell check
+nmap <silent> <leader>ts :setlocal spell!<CR>
+nmap <leader>sn ]s
+nmap <leader>sp [s
+nmap <leader>sa zg
+nmap <leader>ss z=
+
+" shortcuts for common tasks
+nmap <F1> :w<CR>
+imap <F1> <ESC>:w<CR>
+nmap <F6> :<UP><CR>
+imap <F6> <ESC>:<UP><CR>
+nmap <silent> <leader>q :q<CR>
+
+" simulate emacs in insert mode
+inoremap <C-F> <RIGHT>
+inoremap <C-B> <LEFT>
+inoremap <C-N> <DOWN>
+inoremap <C-P> <UP>
+inoremap <C-E> <END>
+inoremap <C-A> <HOME>
+
+" for jumping to specific window quickly
+noremap <C-J> <C-W>j
+noremap <C-K> <C-W>k
+noremap <C-L> <C-W>l
+noremap <C-H> <C-W>h
+
+" compile and run(preview) specific files or program
+if has("win32")
+    au BufNewFile,BufRead *.c nmap <F2> :! gcc -Wall -gstabs -o out.exe %<CR><CR>
+    au BufNewFile,BufRead *.cpp nmap <F2> :! g++ -std=c++11 -Wall -o out.exe %<CR><CR>
+    nmap <F3> :! out.exe<CR><CR>
+    nmap <F4> :! gdb out.exe<CR><CR>
+else
+    if has("unix")
+        au BufNewFile,BufRead *.c nmap <F2> :! gcc -Wall -gstabs -o out %<CR>
+        au BufNewFile,BufRead *.cpp nmap <F2> :! g++ -std=c++11 -Wall -gstabs -o out %<CR>
+        nmap <F3> :! ./out<CR>
+        nmap <F4> :! gdb out<CR>
+    endif
+endif
+
+" ================================================
+" PLUGINS
+" ================================================
+" pathogen
+execute pathogen#infect()
+
+" nerdtree
+let NERDTreeQuitOnOpen = 1
+nmap <silent> <F8> :NERDTreeToggle<CR>
+
+" tagbar
+let g:tagbar_width = 32
+let g:tagbar_autofocus = 1
+let g:tagbar_autoclose = 1
+if has("win32")
+    let g:path = ";" . $VIM . "/vimfiles/extention/bin/;"
+    let g:path = g:path . $VIM . "/vimfiles/extention/msys/1.0/mingw/bin/;"
+    let $PATH = $PATH . g:path
+endif
+nmap <silent> <F9> :TagbarToggle<CR>
+
+" vim-markdown
+au FileType md set filetype=markdown
+let g:vim_markdown_initial_foldlevel=2
+
+" ================================================
+" ABBREVIATIONS
+" ================================================
+iab xdate <C-R>=strftime("%Y-%m-%d %H:%M:%S")<CR>
