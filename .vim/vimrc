@@ -11,7 +11,7 @@ set fileencoding=utf8 encoding=utf8
 set history=50      " keep 40 lines of command line history
 set autoindent      " always set autoindenting on
 set incsearch		" do incremental searching
-set autoread        " auto read chianged files
+set autoread        " auto read changed files
 set showcmd		    " display incomplete commands
 set number          " turn on lines number
 set ruler           " turn on status line on bottom right corner
@@ -49,8 +49,8 @@ endif
 " KEY BINDINGS
 " ================================================
 " for manipulating vimrc
-nmap <leader>ev :e $MYVIMRC<CR>
-nmap <silent> <leader>vv :so $MYVIMRC<CR>
+nnoremap <leader>ev :vsplit $MYVIMRC<CR>
+nmap <silent> <leader>sv :source $MYVIMRC<CR>
 
 " for managing tabs
 nmap <leader>tn :tabnew<CR>
@@ -74,6 +74,8 @@ nmap <leader>ss z=
 " shortcuts for common tasks
 nmap <F1> :w<CR>
 imap <F1> <ESC>:w<CR>
+nmap <F2> :exec Compile()<CR><CR>
+nmap <F3> :exec Run()<CR><CR>
 nmap <F6> :<UP><CR>
 imap <F6> <ESC>:<UP><CR>
 nmap <silent> <leader>q :q<CR>
@@ -94,16 +96,11 @@ noremap <C-H> <C-W>h
 
 " compile and run(preview) specific files or program
 if has("win32")
-    au BufNewFile,BufRead *.c nmap <F2> :! gcc -Wall -gstabs -o out.exe %<CR><CR>
-    au BufNewFile,BufRead *.cpp nmap <F2> :! g++ -std=c++11 -Wall -o out.exe %<CR><CR>
-    nmap <F3> :! out.exe<CR><CR>
-    nmap <F4> :! gdb out.exe<CR><CR>
+    autocmd FileType help wincmd L " open help window vertically on the right
+    nnoremap <F11> :call libcallnr("gvimfullscreen.dll", "ToggleFullScreen", 0)<CR>
+    inoremap <F11> <ESC>:call libcallnr("gvimfullscreen.dll", "ToggleFullScreen", 0)<CR>a
 else
     if has("unix")
-        au BufNewFile,BufRead *.c nmap <F2> :! gcc -Wall -gstabs -o out %<CR>
-        au BufNewFile,BufRead *.cpp nmap <F2> :! g++ -std=c++11 -Wall -gstabs -o out %<CR>
-        nmap <F3> :! ./out<CR>
-        nmap <F4> :! gdb out<CR>
     endif
 endif
 
@@ -136,3 +133,39 @@ let g:vim_markdown_initial_foldlevel=2
 " ABBREVIATIONS
 " ================================================
 iab xdate <C-R>=strftime("%Y-%m-%d %H:%M:%S")<CR>
+" Compile and run program
+func Compile()
+    if has("win32")
+        if &filetype == 'c'
+            exec "! gcc -Wl,-enable-auto-import % -g -o %<.exe"
+        elseif &filetype == 'cpp'
+            exec "! g++ -std=c++11 -Wl,-enable-auto-import % -g -o %<.exe"
+        elseif &filetype == 'sass'
+            exec "! compass compile"
+        endif
+    else
+        if has("unix")
+            if &filetype == 'c'
+                exec "! gcc -Wl,-enable-auto-import % -g -o %<"
+            elseif &filetype == 'cpp'
+                exec "! g++ -std=c++11 -Wl,-enable-auto-import % -g -o %<"
+            elseif &filetype == 'sass'
+                exec "! compass compile"
+            endif
+        endif
+    endif
+endfunc
+
+func Run()
+    if has("win32")
+        if &filetype == 'c' || &filetype == 'cpp'
+            exec "! %<.exe"
+        endif
+    else
+        if has("unix")
+            if &filetype == 'c' || &filetype == 'cpp'
+                exec "! ./%<"
+            endif
+        endif
+    endif
+endfunc
